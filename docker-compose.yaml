@@ -1,0 +1,61 @@
+version: '3.8'
+services:
+    
+    # Application
+    app:
+        build:
+            context: .
+            dockerfile: app.dockerfile
+        working_dir: /var/www
+        volumes:
+            - ./backend:/var/www
+        depends_on:
+            - database
+    # Web Server
+    web:
+        build:
+            context: .
+            dockerfile: web.dockerfile
+        working_dir: /var/www
+        volumes:
+            - ./backend:/var/www
+        depends_on:
+            - app
+        ports:
+            - 80:80
+    # Database
+    database:
+        image: mysql:8.0
+        volumes:
+            - dbdata:/var/lib/mysql
+        environment:
+            MYSQL_DATABASE: laraveldb
+            MYSQL_ROOT_PASSWORD: dbpassword
+            MYSQL_PASSWORD: dbpassword
+            MYSQL_USER: dbuser
+        ports:
+            - 33061:3306
+    # Database management
+    pma:
+        image: phpmyadmin:5.1
+        environment:
+            - PMA_ARBITRARY=1
+            - PMA_HOST=database
+            - PMA_USER=dbuser
+            - PMA_PASSWORD=dbpassword
+            - PMA_PORT=3306
+        depends_on:
+            - database
+        ports:
+            - 8888:80
+    # Mailing Server
+    # mailhog:
+    #     image: mailhog/mailhog
+    #     logging:
+    #         driver: 'none'
+    #     ports:
+    #         - 1025:1025 
+    #         - 8025:8025 
+
+volumes:
+    dbdata:
